@@ -4,29 +4,41 @@
 import { useState, useRef } from "react";
 import DocumentListItem from "@/components/DocumentListItem";
 import { CaseDocument } from "@/types";
+import { uploadDocument } from "@/lib/api";
 
-const initialDocuments: CaseDocument[] = [
-  { id: "1", fileName: "Informe_balistica.pdf", fragmentCount: 14, isActive: true },
-  { id: "2", fileName: "Cadena_custodia.docx", fragmentCount: 8 },
-  { id: "3", fileName: "Reporte_ADN_lab.pdf", fragmentCount: 21 },
-];
+const initialDocuments: CaseDocument[] = [];
 
 export default function DocumentPanel() {
   const[documents, setDocuments] = useState<CaseDocument[]>(initialDocuments);
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if(!file) return;
 
-    const newDoc: CaseDocument = {
-      id: crypto.randomUUID(),
-      fileName: file.name,
-      fragmentCount: 0,
-    };
+    setError(null);
+    setIsUploading(true);
 
-    setDocuments((prev) => [...prev, newDoc]);
-    e.target.value = "";
+
+    try {
+      const uploaded = await uploadDocument(file);
+
+      const newDoc: CaseDocument = {
+        id: uploaded.id,
+        fileName: uploaded.filename,
+        fragmentCount: 0, 
+      };
+
+      setDocuments((prev) => [...prev, newDoc]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al subir el documento");
+    } finally {
+      setIsUploading(false);
+      e.target.value = "";
+    }
+
   }
 
   return (
@@ -42,7 +54,8 @@ export default function DocumentPanel() {
         <input
          ref={fileInputRef}
          type="file"
-         accept=".pdf,.doc"
+         disabled={isUploading}
+         accept=".pdf"
          onChange={handleFileSelected}
          className="hidden"
          />
@@ -51,7 +64,10 @@ export default function DocumentPanel() {
          className="w-full mt-3.5 py-2.5 rounded-md border border-dashed border-stone-700
                     text-stone-500 text-xs flex item-center justify-center gap-1.5
                     hover:bg-white/5 transition"
-        >⬆️ Agregar documento</button>
+        >{isUploading ? "Subiendo..." : "⬆️ Agregar documento"}</button>
+              {error && (
+        <p className="mt-2 text-xs text-red-500">{error}</p>
+      )}
     </aside>
   );
 }
