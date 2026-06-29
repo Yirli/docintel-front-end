@@ -1,18 +1,39 @@
 
 "use client"
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import DocumentListItem from "@/components/DocumentListItem";
 import { CaseDocument } from "@/types";
-import { uploadDocument } from "@/lib/api";
+import { uploadDocument, listDocuments} from "@/lib/api";
 
 const initialDocuments: CaseDocument[] = [];
 
 export default function DocumentPanel() {
   const[documents, setDocuments] = useState<CaseDocument[]>(initialDocuments);
   const [isUploading, setIsUploading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+    async function fetchDocuments() {
+      try {
+        const docs = await listDocuments();
+        const mapped: CaseDocument[] = docs.map((doc) => ({
+          id: doc.id,
+          fileName: doc.filename,
+          fragmentCount: 0, 
+        }));
+        setDocuments(mapped);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Error al cargar documentos");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchDocuments();
+  }, []);
 
   async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -46,11 +67,15 @@ export default function DocumentPanel() {
       <p className="font-mono text-[11px] text-stone-500 uppercase tracking-wide mb-3">
         Documentos del caso
       </p>
-      <div className="flex flex-col gap-1.5">
-        {documents.map((doc) => (
-          <DocumentListItem key={doc.id} document={doc} />
-        ))}
-      </div>
+      {isLoading ? (
+        <p className="text-xs text-stone-500">Cargando documentos...</p>
+      ) : (
+        <div className="flex flex-col gap-1.5">
+          {documents.map((doc) => (
+            <DocumentListItem key={doc.id} document={doc} />
+          ))}
+        </div>
+      )}
         <input
          ref={fileInputRef}
          type="file"

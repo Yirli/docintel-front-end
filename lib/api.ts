@@ -8,6 +8,14 @@ export interface DocumentUploadResponse {
   status: string;
 }
 
+export interface DocumentMetadata {
+  id: string;
+  filename: string;
+  page_count: number | null;
+  status: string;
+  uploaded_at: string;
+}
+
 export async function uploadDocument(file: File): Promise<DocumentUploadResponse> {
   const formData = new FormData();
   formData.append("file", file);
@@ -24,3 +32,19 @@ export async function uploadDocument(file: File): Promise<DocumentUploadResponse
 
   return response.json();
 }
+
+
+export async function listDocuments(): Promise<DocumentMetadata[]> {
+
+  const response = await fetch(`${API_BASE_URL}/documents/`, {
+    method: "GET"
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => null);
+    throw new Error(errorBody?.detail || "Error al desplegar lista de documentos");
+  }
+
+  return response.json();
+}
+
