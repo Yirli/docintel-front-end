@@ -4,7 +4,7 @@ import { useState } from "react";
 
 interface ChatInputProps {
   onSend: (text: string) => void;
-  disabled?: boolean;  // ← nuevo
+  disabled?: boolean; 
 }
 export default function ChatInput({ onSend, disabled }: ChatInputProps) {
   const [value, setValue] = useState("");
