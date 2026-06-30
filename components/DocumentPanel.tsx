@@ -8,7 +8,12 @@ import { uploadDocument, listDocuments} from "@/lib/api";
 
 const initialDocuments: CaseDocument[] = [];
 
-export default function DocumentPanel() {
+interface DocumentPanelProps {
+  activeDocument: CaseDocument | null;
+  onDocumentSelect: (doc: CaseDocument) => void;
+}
+
+export default function DocumentPanel({ activeDocument, onDocumentSelect }: DocumentPanelProps) {
   const[documents, setDocuments] = useState<CaseDocument[]>(initialDocuments);
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -72,7 +77,11 @@ export default function DocumentPanel() {
       ) : (
         <div className="flex flex-col gap-1.5">
           {documents.map((doc) => (
-            <DocumentListItem key={doc.id} document={doc} />
+            <DocumentListItem 
+              key={doc.id} 
+              document={doc} 
+              isActive={activeDocument?.id === doc.id} 
+              onClick={() => onDocumentSelect(doc)}/>
           ))}
         </div>
       )}

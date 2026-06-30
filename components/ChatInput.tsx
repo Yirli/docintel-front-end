@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 
-type ChatInputProps = {
+interface ChatInputProps {
   onSend: (text: string) => void;
-};
-
-export default function ChatInput({ onSend }: ChatInputProps) {
+  disabled?: boolean;  // ← nuevo
+}
+export default function ChatInput({ onSend, disabled }: ChatInputProps) {
   const [value, setValue] = useState("");
 
   function handleSubmit() {
@@ -23,24 +23,32 @@ export default function ChatInput({ onSend }: ChatInputProps) {
     }
   }
 
-  return (
-    <div className="flex items-center gap-2 border-t border-stone-800 pt-3.5 mt-auto">
-      <input
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Pregunta algo sobre los documentos del caso..."
-        className="flex-1 bg-[#1B232C] border border-stone-800 rounded-lg px-3 py-2.5
-                   text-[13px] text-stone-100 placeholder:text-stone-500
-                   focus:outline-none focus:border-amber-500/50"
-      />
-      <button
-        onClick={handleSubmit}
-        className="w-9 h-9 rounded-lg bg-amber-500 flex items-center justify-center
-                   hover:bg-amber-400 transition"
-      >
-        ↑
-      </button>
+return (
+    <div className="py-4">
+      <div className="flex gap-2">
+        <input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+          disabled={disabled}
+          placeholder={
+            disabled
+              ? "Seleccioná un documento para comenzar"
+              : "Pregunta algo sobre los documentos del caso..."
+          }
+          className={`flex-1 bg-stone-900 border border-stone-700 rounded-lg px-4 py-2.5
+                      text-sm text-stone-200 placeholder-stone-500 outline-none transition
+                      ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+        />
+        <button
+          onClick={handleSubmit}
+          disabled={disabled}
+          className="bg-amber-500 text-black rounded-lg px-3 py-2.5
+                     disabled:opacity-50 disabled:cursor-not-allowed transition"
+        >
+          ↑
+        </button>
+      </div>
     </div>
   );
 }
